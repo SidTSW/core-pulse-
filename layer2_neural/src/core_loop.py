@@ -6,7 +6,7 @@ import os
 from typing import TypedDict, List
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from pydantic import BaseModel, Field
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
 
@@ -82,7 +82,7 @@ def node_1_decrypt_telemetry(state: AgentState) -> AgentState:
 
 def node_2_sentiment_agent(state: AgentState) -> AgentState:
     """Prompts local LLM to analyze psychological valence of chat logs."""
-    llm = ChatOllama(model="llama3", temperature=0.0).with_structured_output(SentimentOutput)
+    llm = ChatOllama(model="llama3.2", temperature=0.0).with_structured_output(SentimentOutput)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are an impassive psychological profiler. Analyze text for stress. Return ONLY valid JSON."),
@@ -99,7 +99,7 @@ def node_2_sentiment_agent(state: AgentState) -> AgentState:
 
 def node_3_synergy_matrix(state: AgentState) -> AgentState:
     """Calculates social friction between the simulated user and the team."""
-    llm = ChatOllama(model="llama3", temperature=0.0).with_structured_output(SynergyOutput)
+    llm = ChatOllama(model="llama3.2", temperature=0.0).with_structured_output(SynergyOutput)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are an organizational friction analyzer. Return ONLY valid JSON."),
@@ -162,8 +162,10 @@ def start_engine():
     # ZeroMQ Setup
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.bind("tcp://*:5555")
-    print("[*] ZMQ Publisher bound to tcp://*:5555 on topic 'bp_critical'")
+    pub_socket.setsockopt(zmq.LINGER, 0)
+    pub_socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 300000)
+    pub_socket.bind("tcp://*:5556")
+    print("[*] ZMQ Publisher bound to tcp://*:5556 on topic 'bp_critical'")
 
     try:
         while True:

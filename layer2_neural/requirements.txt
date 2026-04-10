@@ -5,3 +5,4 @@ pydantic>=2.6.4
 pyzmq>=25.1.2
 pysqlite3>=0.5.2
 cryptography>=42.0.5
+langchain-ollama>=1.1.0
